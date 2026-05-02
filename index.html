@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<head>
+  <meta charset="UTF-8">
+  <title>Error Translator Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #F4F6FB; color: #1B2A6B; }
+
+    nav {
+      background: #1B2A6B; padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    nav h1 { color: white; font-size: 20px; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    #nav-user { color: #F5A623; font-size: 13px; font-weight: bold; }
+    .nav-btn {
+      border: none; padding: 7px 16px; border-radius: 6px;
+      cursor: pointer; font-weight: bold; font-size: 13px; display: none;
+    }
+    #register-btn   { background: #1D9E75; color: white; }
+    #analytics-btn  { background: #C8D9F0; color: #1B2A6B; }
+    #change-pwd-btn { background: #C8D9F0; color: #1B2A6B; }
+    #logout-btn     { background: #F5A623; color: #1B2A6B; }
+
+    .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+
+    .btn {
+      padding: 9px 20px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 13px; font-weight: bold;
+    }
+    .btn-primary   { background: #1B2A6B; color: white; }
+    .btn-success   { background: #1D9E75; color: white; }
+    .btn-danger    { background: #E24B4A; color: white; }
+    .btn-secondary { background: #ccc; color: #333; }
+    .btn:hover { opacity: 0.85; }
+
+    /* LOGIN */
+    #screen-login {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 80vh;
+    }
+    #screen-login.hidden { display: none !important; }
+    #screen-forgot {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 80vh;
+    }
+    #screen-forgot.hidden { display: none !important; }
+
+    .login-card {
+      background: white; border-radius: 12px; padding: 40px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1); width: 100%; max-width: 420px;
+    }
+    .login-card h2 { margin-bottom: 8px; font-size: 22px; }
+    .login-card p.subtitle { color: #888; font-size: 13px; margin-bottom: 28px; }
+    .error-msg   { color: #E24B4A; font-size: 13px; margin-top: 10px; display: none; }
+    .success-msg { color: #1D9E75; font-size: 13px; margin-top: 10px; display: none; }
+
+    /* FORM */
+    .form-card {
+      background: white; border-radius: 10px; padding: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 600px; margin: 0 auto;
+    }
+    .form-card h2 { margin-bottom: 24px; font-size: 20px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #4A5568; }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%; padding: 10px 12px; border: 1px solid #C8D9F0;
+      border-radius: 6px; font-size: 13px; color: #1B2A6B;
+    }
+    .form-group textarea { height: 100px; resize: vertical; }
+    .form-group small { color: #888; font-size: 11px; }
+    .form-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+    /* TABLE */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .top-bar h2 { font-size: 22px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    th { background: #1B2A6B; color: white; padding: 12px 16px; text-align: left; font-size: 13px; }
+    td { padding: 12px 16px; border-bottom: 1px solid #eee; font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    .error-badge { background: #E6F1FB; color: #0C447C; padding: 3px 10px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>Error Translator — Admin Panel</h1>
+  <div class="nav-right">
+    <span id="nav-user"></span>
+    <button id="register-btn"   class="nav-btn" onclick="showRegister()">+ Register User</button>
+    <button id="analytics-btn"  class="nav-btn" onclick="showAnalytics()">Analytics</button>
+    <button id="change-pwd-btn" class="nav-btn" onclick="showChangePwd()">Change Password</button>
+    <button id="logout-btn"     class="nav-btn" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="screen-login">
+    <div class="login-card">
+      <h2>Welcome Back</h2>
+      <p class="subtitle">AT&T Error Translator — Admin Login</p>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="Enter username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter password"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doLogin()">Login</button>
+      <p style="text-align:center; margin-top:12px;">
+        <a href="#" onclick="showForgot()" style="color:#1B2A6B; font-size:13px;">Forgot Password?</a>
+      </p>
+      <p class="error-msg" id="login-error">Invalid username or password</p>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD -->
+  <div id="screen-forgot" class="hidden">
+    <div class="login-card">
+      <h2>Forgot Password</h2>
+      <p class="subtitle">Enter your username and email — we'll send a temporary password</p>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="forgot-username" placeholder="Enter your username"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="forgot-email" placeholder="Enter your email"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="submitForgot()">Send Temporary Password</button>
+      <p class="error-msg"   id="forgot-error"></p>
+      <p class="success-msg" id="forgot-success"></p>
+      <p style="text-align:center; margin-top:16px;">
+        <a href="#" onclick="backToLogin()" style="color:#1B2A6B; font-size:13px;">← Back to Login</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- LISTING -->
+<div id="screen-list" class="hidden">
+  <div class="top-bar">
+    <h2>Error Code Management</h2>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span id="access-badge"></span>
+      <button id="add-btn" class="btn btn-primary hidden" onclick="showCreate()">+ Add New</button>
+      <button id="export-btn" class="btn btn-success" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div style="margin-bottom:16px;">
+    <input 
+      type="text" 
+      id="search-input" 
+      placeholder="Search by error number or message..." 
+      oninput="filterErrors()"
+      style="width:100%; padding:10px 16px; border:1px solid #C8D9F0; border-radius:8px; font-size:14px; color:#1B2A6B; box-shadow:0 1px 4px rgba(0,0,0,0.06);"
+    />
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Error No</th>
+        <th>Display Message</th>
+        <th>Last Updated</th>
+        <th>Updated By</th>
+        <th id="actions-header">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="error-table-body">
+      <tr><td colspan="5" style="text-align:center; color:#888;">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <p id="no-results" style="text-align:center; color:#888; margin-top:16px; display:none;">No error codes match your search.</p>
+</div>
+
+  <!-- CREATE -->
+  <div id="screen-create" class="hidden">
+    <div class="form-card">
+      <h2>Add New Error Code</h2>
+      <div class="form-group">
+        <label>Government Error Number</label>
+        <input type="text" id="new-error-no" placeholder="e.g. 10092" maxlength="6"/>
+        <small>Must be a 6-digit code</small>
+      </div>
+      <div class="form-group">
+        <label>Display Message (shown to customer)</label>
+        <textarea id="new-message" placeholder="Enter customer-friendly explanation..."></textarea>
+        <small>Max 500 characters</small>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="submitCreate()">Save</button>
+        <button class="btn btn-secondary" onclick="showList()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT -->
+  <div id="screen-edit" class="hidden">
+    <div class="form-card">
+      <h2>Edit Error Code</h2>
+      <div class="form-group">
+        <label>Government Error Number</label>
+        <input type="text" id="edit-error-no" disabled style="background:#f0f0f0; color:#888;"/>
+        <small>Error number cannot be changed</small>
+      </div>
+      <div class="form-group">
+        <label>Display Message (shown to customer)</label>
+        <textarea id="edit-message"></textarea>
+        <small>Max 500 characters</small>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="submitEdit()">Update</button>
+        <button class="btn btn-secondary" onclick="showList()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD -->
+  <div id="screen-changepwd" class="hidden">
+    <div class="form-card">
+      <h2>Change Password</h2>
+      <div class="form-group">
+        <label>Current Password</label>
+        <input type="password" id="old-password" placeholder="Enter current password"/>
+      </div>
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" id="new-password" placeholder="Enter new password"/>
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <input type="password" id="confirm-password" placeholder="Re-enter new password"/>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="submitChangePwd()">Update Password</button>
+        <button class="btn btn-secondary" onclick="showList()">Cancel</button>
+      </div>
+      <p class="error-msg"   id="pwd-error"></p>
+      <p class="success-msg" id="pwd-success">Password changed successfully!</p>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+<div id="screen-analytics" class="hidden">
+  <div class="top-bar">
+    <h2>Analytics — Error Code Report</h2>
+    <button class="btn btn-primary" onclick="showList()">← Back to List</button>
+  </div>
+
+  <!-- CHART -->
+  <div style="background:white; border-radius:10px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:24px;">
+    <h3 style="margin-bottom:16px; font-size:16px; color:#1B2A6B;">Error Code Lookup Frequency</h3>
+    <canvas id="analyticsChart" height="100"></canvas>
+  </div>
+
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>Error No</th>
+        <th>Display Message</th>
+        <th>Times Looked Up</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="analytics-table-body">
+      <tr><td colspan="4" style="text-align:center; color:#888;">Loading...</td></tr>
+    </tbody>
+  </table>
+</div>
+  <!-- REGISTER USER -->
+  <div id="screen-register" class="hidden">
+    <div class="form-card">
+      <h2>Register New User</h2>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="reg-username" placeholder="Enter username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Enter password"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="Enter email address"/>
+      </div>
+      <div class="form-group">
+        <label>Access Level</label>
+        <select id="reg-iwrite">
+          <option value="0">Read Only</option>
+          <option value="1">Write Access (Admin)</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-success" onclick="submitRegister()">Register & Send Email</button>
+        <button class="btn btn-secondary" onclick="showList()">Cancel</button>
+      </div>
+      <p class="error-msg"   id="reg-error"></p>
+      <p class="success-msg" id="reg-success"></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API = 'http://127.0.0.1:5000/api/errors';
+  let currentUser = null;
+
+  // ── LOGIN ──
+  function doLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    if (!username || !password) { alert('Please enter both fields!'); return; }
+
+    fetch('http://127.0.0.1:5000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message === 'Login successful') {
+        currentUser = data;
+        document.getElementById('login-error').style.display = 'none';
+        document.getElementById('nav-user').textContent = 'Hello, ' + data.username;
+        document.getElementById('analytics-btn').style.display  = 'block';
+        document.getElementById('change-pwd-btn').style.display = 'block';
+        document.getElementById('logout-btn').style.display     = 'block';
+        if (data.iwrite === 1) {
+          document.getElementById('register-btn').style.display = 'block';
+        }
+        showList();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    })
+    .catch(() => {
+      document.getElementById('login-error').textContent = 'Cannot connect to server. Make sure Flask is running.';
+      document.getElementById('login-error').style.display = 'block';
+    });
+  }
+
+  // ── LOGOUT ──
+  function logout() {
+    currentUser = null;
+    document.getElementById('nav-user').textContent = '';
+    document.getElementById('register-btn').style.display   = 'none';
+    document.getElementById('analytics-btn').style.display  = 'none';
+    document.getElementById('change-pwd-btn').style.display = 'none';
+    document.getElementById('logout-btn').style.display     = 'none';
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    hideAll();
+    document.getElementById('screen-login').classList.remove('hidden');
+  }
+
+  // ── NAVIGATION ──
+  function hideAll() {
+    ['screen-login','screen-list','screen-create','screen-edit',
+     'screen-changepwd','screen-analytics','screen-register','screen-forgot']
+      .forEach(id => document.getElementById(id).classList.add('hidden'));
+  }
+
+  function showList() {
+    hideAll();
+    document.getElementById('screen-list').classList.remove('hidden');
+    if (currentUser && currentUser.iwrite === 1) {
+      document.getElementById('add-btn').classList.remove('hidden');
+      document.getElementById('actions-header').style.display = '';
+      document.getElementById('access-badge').innerHTML = '<span style="background:#E1F5EE; color:#085041; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:bold;">Write Access</span>';
+    } else {
+      document.getElementById('add-btn').classList.add('hidden');
+      document.getElementById('actions-header').style.display = 'none';
+      document.getElementById('access-badge').innerHTML = '<span style="background:#FFF8E8; color:#854F0B; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:bold;">Read Only</span>';
+    }
+    loadErrors();
+  }
+
+  function showCreate() {
+    hideAll();
+    document.getElementById('screen-create').classList.remove('hidden');
+  }
+
+  function showEdit(error_no, message) {
+    hideAll();
+    document.getElementById('screen-edit').classList.remove('hidden');
+    document.getElementById('edit-error-no').value = error_no;
+    document.getElementById('edit-message').value  = message;
+  }
+
+  function showChangePwd() {
+    hideAll();
+    document.getElementById('screen-changepwd').classList.remove('hidden');
+    document.getElementById('old-password').value     = '';
+    document.getElementById('new-password').value     = '';
+    document.getElementById('confirm-password').value = '';
+    document.getElementById('pwd-error').style.display   = 'none';
+    document.getElementById('pwd-success').style.display = 'none';
+  }
+
+  let analyticsChartInstance = null;
+
+function showAnalytics() {
+    hideAll();
+    document.getElementById('screen-analytics').classList.remove('hidden');
+    fetch('http://127.0.0.1:5000/api/analytics')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById('analytics-table-body');
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">No data yet — call the lookup API a few times first</td></tr>';
+          return;
+        }
+
+        // ── TABLE ──
+        tbody.innerHTML = data.map(row => `
+          <tr>
+            <td><span class="error-badge">${row.error_no}</span></td>
+            <td>${row.display_message}</td>
+            <td style="font-weight:bold; color:${row.lookup_count > 5 ? '#E24B4A' : '#1D9E75'};">
+              ${row.lookup_count} times
+            </td>
+            <td>
+              ${row.lookup_count > 5
+                ? '<span style="background:#FCEBEB; color:#A32D2D; padding:3px 10px; border-radius:4px; font-size:12px;">High Frequency</span>'
+                : '<span style="background:#E1F5EE; color:#085041; padding:3px 10px; border-radius:4px; font-size:12px;">Normal</span>'
+              }
+            </td>
+          </tr>
+        `).join('');
+
+        // ── CHART ──
+        const labels  = data.map(row => 'Error ' + row.error_no);
+        const counts  = data.map(row => row.lookup_count);
+        const colors  = data.map(row => row.lookup_count > 5 ? '#E24B4A' : '#1B2A6B');
+
+        // destroy old chart if exists
+        if (analyticsChartInstance) {
+          analyticsChartInstance.destroy();
+        }
+
+        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        analyticsChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Number of Lookups',
+              data: counts,
+              backgroundColor: colors,
+              borderRadius: 6,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return context.parsed.y + ' times looked up';
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 },
+                title: { display: true, text: 'Lookup Count' }
+              },
+              x: {
+                title: { display: true, text: 'Error Codes' }
+              }
+            }
+          }
+        });
+      });
+}
+  function showRegister() {
+    hideAll();
+    document.getElementById('screen-register').classList.remove('hidden');
+    document.getElementById('reg-username').value = '';
+    document.getElementById('reg-password').value = '';
+    document.getElementById('reg-email').value    = '';
+    document.getElementById('reg-error').style.display   = 'none';
+    document.getElementById('reg-success').style.display = 'none';
+  }
+
+  function showForgot() {
+    hideAll();
+    document.getElementById('screen-forgot').classList.remove('hidden');
+    document.getElementById('forgot-username').value = '';
+    document.getElementById('forgot-email').value    = '';
+    document.getElementById('forgot-error').style.display   = 'none';
+    document.getElementById('forgot-success').style.display = 'none';
+  }
+
+  function backToLogin() {
+    hideAll();
+    document.getElementById('screen-login').classList.remove('hidden');
+  }
+
+  // ── LOAD ERRORS ──
+  let allErrors = []; // store all errors globally for filtering
+
+function loadErrors() {
+    fetch(API)
+      .then(res => res.json())
+      .then(data => {
+        allErrors = data; // save all data
+        document.getElementById('search-input').value = ''; // clear search
+        renderTable(data);
+      });
+}
+
+function filterErrors() {
+    const query = document.getElementById('search-input').value.toLowerCase().trim();
+    if (!query) {
+        renderTable(allErrors);
+        return;
+    }
+    const filtered = allErrors.filter(row =>
+        row.error_no.toLowerCase().includes(query) ||
+        row.display_message.toLowerCase().includes(query)
+    );
+    renderTable(filtered);
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('error-table-body');
+    const noResults = document.getElementById('no-results');
+
+    if (data.length === 0) {
+        tbody.innerHTML = '';
+        noResults.style.display = 'block';
+        return;
+    }
+
+    noResults.style.display = 'none';
+    const canWrite = currentUser && currentUser.iwrite === 1;
+    tbody.innerHTML = data.map(row => `
+        <tr>
+            <td><span class="error-badge">${row.error_no}</span></td>
+            <td>${row.display_message}</td>
+            <td style="color:#888; font-size:12px;">${row.updated_date_time}</td>
+            <td style="color:#888; font-size:12px;">${row.updated_by || '—'}</td>
+            <td>${canWrite ? `
+                <button class="btn btn-primary" style="margin-right:6px; padding:5px 12px;" onclick="showEdit('${row.error_no}', \`${row.display_message}\`)">Edit</button>
+                <button class="btn btn-danger" style="padding:5px 12px;" onclick="deleteError('${row.error_no}')">Delete</button>
+            ` : '<span style="color:#888; font-size:12px;">View Only</span>'}</td>
+        </tr>
+    `).join('');
+}
+
+  // ── CREATE ──
+  function submitCreate() {
+    const error_no = document.getElementById('new-error-no').value.trim();
+    const display_message = document.getElementById('new-message').value.trim();
+    if (!error_no || !display_message) { alert('Please fill both fields!'); return; }
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error_no, display_message })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+      if (data.message === 'Error code added successfully') showList();
+    });
+  }
+
+  // ── UPDATE ──
+  function submitEdit() {
+    const error_no = document.getElementById('edit-error-no').value;
+    const display_message = document.getElementById('edit-message').value.trim();
+    if (!display_message) { alert('Message cannot be empty!'); return; }
+    fetch(`${API}/${error_no}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_message, updated_by: currentUser.username })
+    })
+    .then(res => res.json())
+    .then(() => { alert('Updated successfully!'); showList(); });
+  }
+
+  // ── DELETE ──
+  function deleteError(error_no) {
+    if (!confirm(`Delete error code ${error_no}?`)) return;
+    fetch(`${API}/${error_no}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(() => { alert('Deleted!'); loadErrors(); });
+  }
+
+  // ── CHANGE PASSWORD ──
+  function submitChangePwd() {
+    const old_password     = document.getElementById('old-password').value.trim();
+    const new_password     = document.getElementById('new-password').value.trim();
+    const confirm_password = document.getElementById('confirm-password').value.trim();
+    const errEl = document.getElementById('pwd-error');
+    const sucEl = document.getElementById('pwd-success');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+
+    if (!old_password || !new_password || !confirm_password) {
+      errEl.textContent = 'Please fill all fields!'; errEl.style.display = 'block'; return;
+    }
+    if (new_password !== confirm_password) {
+      errEl.textContent = 'New passwords do not match!'; errEl.style.display = 'block'; return;
+    }
+    if (new_password.length < 6) {
+      errEl.textContent = 'Password must be at least 6 characters!'; errEl.style.display = 'block'; return;
+    }
+    fetch('http://127.0.0.1:5000/api/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: currentUser.username, old_password, new_password })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message === 'Password changed successfully') {
+        sucEl.style.display = 'block';
+        setTimeout(() => showList(), 1500);
+      } else {
+        errEl.textContent = data.message;
+        errEl.style.display = 'block';
+      }
+    });
+  }
+
+  // ── REGISTER ──
+  function submitRegister() {
+    const username = document.getElementById('reg-username').value.trim();
+    const password = document.getElementById('reg-password').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const iwrite   = parseInt(document.getElementById('reg-iwrite').value);
+    const errEl    = document.getElementById('reg-error');
+    const sucEl    = document.getElementById('reg-success');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+
+    if (!username || !password || !email) {
+      errEl.textContent = 'Please fill all fields!';
+      errEl.style.display = 'block'; return;
+    }
+    fetch('http://127.0.0.1:5000/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, email, iwrite, created_by: currentUser.username })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message === 'User registered and email sent successfully!') {
+        sucEl.textContent = 'User registered and email sent!';
+        sucEl.style.display = 'block';
+        setTimeout(() => showList(), 2000);
+      } else {
+        errEl.textContent = data.message;
+        errEl.style.display = 'block';
+      }
+    });
+  }
+  function exportCSV() {
+    if (allErrors.length === 0) {
+        alert('No data to export!');
+        return;
+    }
+
+    const headers = ['Error No', 'Display Message', 'Last Updated', 'Updated By'];
+    const rows = allErrors.map(row => [
+        row.error_no,
+        '"' + row.display_message.replace(/"/g, '""') + '"',
+        row.updated_date_time,
+        row.updated_by || ''
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'error_codes_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+  // ── FORGOT PASSWORD ──
+  function submitForgot() {
+    const username = document.getElementById('forgot-username').value.trim();
+    const email    = document.getElementById('forgot-email').value.trim();
+    const errEl    = document.getElementById('forgot-error');
+    const sucEl    = document.getElementById('forgot-success');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+
+    if (!username || !email) {
+      errEl.textContent = 'Please fill all fields!';
+      errEl.style.display = 'block'; return;
+    }
+    fetch('http://127.0.0.1:5000/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message === 'Temporary password sent to your email!') {
+        sucEl.textContent = 'Temporary password sent! Check your email.';
+        sucEl.style.display = 'block';
+      } else {
+        errEl.textContent = data.message;
+        errEl.style.display = 'block';
+      }
+    });
+  }
+
+  // Enter key on login
+  document.getElementById('login-password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
+
+</body>
+</html>
