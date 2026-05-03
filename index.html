@@ -315,7 +315,7 @@
 </div>
 
 <script>
-  const API = 'http://127.0.0.1:5000/api/errors';
+  const API = 'https://att-error-translator.onrender.com/api/errors';
   let currentUser = null;
 
   // ── LOGIN ──
@@ -324,7 +324,7 @@
     const password = document.getElementById('login-password').value.trim();
     if (!username || !password) { alert('Please enter both fields!'); return; }
 
-    fetch('http://127.0.0.1:5000/api/login', {
+    fetch('https://att-error-translator.onrender.com/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -415,7 +415,7 @@
 function showAnalytics() {
     hideAll();
     document.getElementById('screen-analytics').classList.remove('hidden');
-    fetch('http://127.0.0.1:5000/api/analytics')
+    fetch('https://att-error-translator.onrender.com/api/analytics')
       .then(res => res.json())
       .then(data => {
         const tbody = document.getElementById('analytics-table-body');
@@ -624,7 +624,7 @@ function renderTable(data) {
     if (new_password.length < 6) {
       errEl.textContent = 'Password must be at least 6 characters!'; errEl.style.display = 'block'; return;
     }
-    fetch('http://127.0.0.1:5000/api/change-password', {
+    fetch('https://att-error-translator.onrender.com/api/change-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: currentUser.username, old_password, new_password })
@@ -656,7 +656,7 @@ function renderTable(data) {
       errEl.textContent = 'Please fill all fields!';
       errEl.style.display = 'block'; return;
     }
-    fetch('http://127.0.0.1:5000/api/register', {
+    fetch('https://att-error-translator.onrender.com/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password, email, iwrite, created_by: currentUser.username })
@@ -710,7 +710,7 @@ function renderTable(data) {
       errEl.textContent = 'Please fill all fields!';
       errEl.style.display = 'block'; return;
     }
-    fetch('http://127.0.0.1:5000/api/forgot-password', {
+    fetch('https://att-error-translator.onrender.com/api/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email })
