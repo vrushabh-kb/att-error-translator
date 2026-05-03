@@ -186,18 +186,19 @@ Username : {data['username']}
 Password : {data['password']}
 Access   : {access_type}
 
-Please login at: http://127.0.0.1:5000
+Please login at: https://charming-gaufre-4a3a5d.netlify.app
 Change your password after first login.
 
 Regards,
 AT&T Error Translator Team"""
         )
+        print(f"Attempting to send email to {data['email']}")
         mail.send(msg)
+        print(f"Email sent successfully to {data['email']}")
+        return jsonify({"message": "User registered and email sent successfully!"}), 201
     except Exception as e:
+        print(f"EMAIL ERROR: {str(e)}")
         return jsonify({"message": "User created but email failed: " + str(e)}), 201
-
-    return jsonify({"message": "User registered and email sent successfully!"}), 201
-
 # ── FORGOT PASSWORD ──
 @app.route('/api/forgot-password', methods=['POST'])
 def forgot_password():
