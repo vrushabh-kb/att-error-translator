@@ -1,23 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_mail import Mail, Message
 import mysql.connector
 import random
 import string
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__)
 CORS(app)
 
-# ── EMAIL CONFIG ──
-app.config['MAIL_SERVER']   = 'smtp.gmail.com'
-app.config['MAIL_PORT']     = 465
-app.config['MAIL_USE_TLS']  = False
-app.config['MAIL_USE_SSL']  = True
-app.config['MAIL_USERNAME'] = 'errortranslator.att@gmail.com'
-app.config['MAIL_PASSWORD'] = 'owpq utyv xquc fauy'
-app.config['MAIL_DEFAULT_SENDER'] = 'errortranslator.att@gmail.com'
-
-mail = Mail(app)
+SENDGRID_API_KEY = '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'
+SENDER_EMAIL = 'errortranslator.att@gmail.com'
 
 def get_db():
     return mysql.connector.connect(
@@ -174,10 +167,11 @@ def register():
     # send welcome email
     try:
         access_type = "Write Access (Admin)" if data['iwrite'] == 1 else "Read Only"
-        msg = Message(
-            subject="Welcome to AT&T Error Translator",
-            recipients=[data['email']],
-            body=f"""Hello {data['username']},
+        message = Mail(
+            from_email=SENDER_EMAIL,
+            to_emails=data['email'],
+            subject='Welcome to AT&T Error Translator',
+            plain_text_content=f"""Hello {data['username']},
 
 Your account has been created on the AT&T Error Translator Admin Panel.
 
@@ -192,13 +186,14 @@ Change your password after first login.
 Regards,
 AT&T Error Translator Team"""
         )
-        print(f"Attempting to send email to {data['email']}")
-        mail.send(msg)
-        print(f"Email sent successfully to {data['email']}")
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        print(f"Email sent! Status: {response.status_code}")
         return jsonify({"message": "User registered and email sent successfully!"}), 201
     except Exception as e:
         print(f"EMAIL ERROR: {str(e)}")
         return jsonify({"message": "User created but email failed: " + str(e)}), 201
+
 # ── FORGOT PASSWORD ──
 @app.route('/api/forgot-password', methods=['POST'])
 def forgot_password():
@@ -225,10 +220,11 @@ def forgot_password():
 
     # send email with temp password
     try:
-        msg = Message(
-            subject="AT&T Error Translator — Password Reset",
-            recipients=[data['email']],
-            body=f"""Hello {data['username']},
+        message = Mail(
+            from_email=SENDER_EMAIL,
+            to_emails=data['email'],
+            subject='AT&T Error Translator — Password Reset',
+            plain_text_content=f"""Hello {data['username']},
 
 A password reset was requested for your account.
 
@@ -241,11 +237,13 @@ If you did not request this, contact your administrator.
 Regards,
 AT&T Error Translator Team"""
         )
-        mail.send(msg)
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        print(f"Reset email sent! Status: {response.status_code}")
+        return jsonify({"message": "Temporary password sent to your email!"}), 200
     except Exception as e:
+        print(f"EMAIL ERROR: {str(e)}")
         return jsonify({"message": "Password reset but email failed: " + str(e)}), 200
-
-    return jsonify({"message": "Temporary password sent to your email!"}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
