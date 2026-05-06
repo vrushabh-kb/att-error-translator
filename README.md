@@ -16,7 +16,7 @@ A full-stack web admin tool that translates cryptic US Government error codes in
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Python Flask
 - **Database:** MySQL
-- **Email:** Flask-Mail with Gmail SMTP
+- **Email:** Flask-Mail with SENDGRID MAIL
 
 ## API Endpoints
 | Method | Endpoint | Description |
