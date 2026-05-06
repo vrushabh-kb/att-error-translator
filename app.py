@@ -181,7 +181,7 @@ Username : {data['username']}
 Password : {data['password']}
 Access   : {access_type}
 
-Please login at: https://charming-gaufre-4a3a5d.netlify.app
+Please login at: https://att-error-translator.netlify.app/
 Change your password after first login.
 
 Regards,
