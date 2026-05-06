@@ -9,7 +9,8 @@ from sendgrid.helpers.mail import Mail
 app = Flask(__name__)
 CORS(app)
 
-SENDGRID_API_KEY = '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'
+import os
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDER_EMAIL = 'errortranslator.att@gmail.com'
 
 def get_db():
